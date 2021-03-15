@@ -349,7 +349,7 @@ Calculate the proportions of **promotion** in **staff_train** and **staff_test**
 (2) What proportion of *promoted* individuals are there in the *testing* set?
 (3) Are the **promotion** proportions essentially equivalent for the *training* and *testing* sets?
 
-**Responses 4.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 4.1**: *(1) 13356 (2) 78.3% (3) yes*.
 
 ```{r, task4_1}
 ##setting seed
@@ -400,7 +400,7 @@ Then, use **unnest()** to extract the **promotion** proportions calculations and
 (2) What proportion of *promoted* individuals are there in the *first analysis* set?
 (3) Are the **promotion** proportions essentially equivalent for the *analysis* and *assessment* sets?
 
-**Responses 4.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 4.2**: *(1) Analysis sets have 10016 observations and the Assessment sets have 3340 observations (2) 10.7% (3) yes*.
 
 ```{r, task4_2}
 ##set seed
@@ -410,7 +410,7 @@ set.seed(1959)
 staff_train_folds <- vfold_cv(
   staff_train,
   v = 4,
-  repeats = 4,
+  repeats = 2,
   strata = promotion
 )
 
@@ -473,7 +473,7 @@ Print wide.
 (2) How many *factor* variables are there in the *baked* recipe?
 (3) Is the *first* employee in the *training* set *below* or *above* the mean on *cognitive flexibility* (**cog_flex**)?
 
-**Responses 5.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 5.1**: *(1) There at 15 variables; 2 outcomes variables and 13 predictor variables (2) there are no factor variables (3) above*.
 
 ```{r, task5_1}
 staff_rec <- recipe(
