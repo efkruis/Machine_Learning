@@ -1,6 +1,6 @@
 ---
 title: "Assignment: Predicting Employee Behaviors and Outcomes with Machine Learning"
-author: "YOUR NAME HERE"
+author: "Emma Kruis"
 date: "2020-01-25"
 output:
   pdf_document: default
@@ -116,7 +116,19 @@ Remove **staff_raw** from your *global environment*.
 **Responses 1.1**: *(1) 14 variables; (2) 17,807 observations; (3) 4 character variables*.
 
 ```{r, task1_1}
+#importing data
+staff_raw <- read_tsv(
+  here("data", "staffing.tsv")
+)
 
+#copy of data
+staff_work <- staff_raw
+
+#preview
+glimpse(staff_work)
+
+#removing raw copy from enviroment
+rm(staff_raw)
 ```
 
 ## Task 2: Clean Data
@@ -140,9 +152,50 @@ Use **glimpse()** to preview the updated **staff_work** data object.
 (2) How many *ordered* factors are there in the data?
 (3) How many *numeric* variables are there in the data?
 
-**Responses 2.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 2.1**: *(1) 3 nominal factors (2) 2 ordered factors (3) 10 numeric variables *.
 
 ```{r, task2_1}
+staff_work <-staff_work %>%
+  #mutate variable types and values
+  mutate(
+    #characters to nominal factors
+    across(
+      .cols = where(is_character),
+      .fns = as_factor
+    ),
+    #change factor labels
+    degree = fct_relabel(
+      degree,
+      str_to_title
+    ),
+    #change factor labels
+    degree= fct_recode(
+      degree,
+      "Master" = "Masters",
+      "Doctor" = " Doctorate" 
+    ),
+    #change order
+    degree = fct_relevel(
+      degree,
+      "Associate", "Bachelor", "Master",
+      after = 1
+    ),
+    #change order
+    wrok_exp = fct_relevel(
+      work_exp,
+      "0-1"
+    ),
+    #convert to ordered factors
+    across(
+      .cols = c(work_exp, degree),
+      .fns = factor,
+      ordered = TRUE
+    )
+  )
+
+#view data
+glimpse(staff_work)
+
 
 ```
 
@@ -162,10 +215,15 @@ Summarize **staff_work** by:
 (1) What is the *median* **sjt** *difference* between those *promoted* and *not promoted*?
 (2) How many *promoted* employees had **11+** years of *work experience*?
 
-**Responses 3.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 3.1**: *(1)promoted:49.3,not promoted:46.7, median difference is 2.6 (2) 318 employees*.
 
 ```{r, task3_1}
-
+##overall summary
+#calling data
+staff_work %>%
+  select(-id, -citizenship, -high_potential) %>%
+  group_by(promotion) %>%
+  skim_without_charts() 
 ```
 
 ### Task 3.2
@@ -179,10 +237,16 @@ Set the *minimum correlation* to **0.52**.
 (1) Which *two* variables are not correlated at least **0.52** with any of the other variables?
 (2) Which *two* variables are correlated at least **0.52** with *job performance*?
 
-**Responses 3.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 3.2**: *(1) conc and cog_flex (2) work_samp and proactive*.
 
 ```{r, task3_2}
-
+##examine correlations
+staff_work %>%
+  select(proactive, emot_intel, sjt, work_samp, str_int, consc, cog_flex, job_perf) %>%
+  correlate() %>%
+  network_plot(
+    min_cor = 0.52
+  )
 ```
 
 ### Task 3.3
@@ -199,10 +263,23 @@ Use **theme_clean()**.
 (2) Which level of *work experience* has the *least number of outliers*?
 (3) Which combination of *educational degree* and *work experience* has the *highest job performance* score?
 
-**Responses 3.3**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 3.3**: *(1) Doctorate (2) 11+ years (3) Doctorate and 11+ years has the highest job performance score *.
 
 ```{r, task3_3}
-
+##examining categorical features
+ggplot(
+  staff_work,
+  aes(
+    x = degree,
+    y = job_perf,
+    fill = work_exp
+  )
+)+
+  geom_boxplot(outlier.colour = "red", outlier.size = 2)+
+  scale_y_continuous(limits = c(15, 85), n.breaks = 8)+
+  scale_fill_brewer(palette = "Dark2")+
+  labs(x= "Degree", y= "Job Perf.", fill= "Work Exp.")+
+  theme_clean()
 ```
 
 ### Task 3.4
@@ -219,10 +296,35 @@ Use **theme_hc()** and remove the legend.
 
 **Question 3.4**: Do you see much of a *difference in the relationship* between *work sample* and *job performance* scores across the levels of *educational degree*?
 
-**Response 3.4**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Response 3.4**: *No there does not appear much difference*.
 
 ```{r, task3_4}
-
+##examine relations by categories
+ggplot(
+  staff_work,
+  aes(
+    x = work_samp,
+    y= job_perf,
+    color= degree
+  )
+)+
+  geom_point(alpha = 0.25)+
+  geom_smooth(method = "lm")+
+  facet_wrap(
+    vars(degree),
+    nrow = 2,
+    labeller = as_labeller(
+      setNames(
+        paste("Degree", levels(staff_work$degree), sep = ": "),
+              levels(staff_work$degree)
+          )
+        )
+      )+
+  scale_y_continuous(limits = c(15, 85), n.breaks = 8) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(x = "Work Samp.", y = "Jop Pref.", color= "Degree")+
+  theme_hc() +
+  theme(legend.position = "none")
 ```
 
 ## Task 4: Split Data
