@@ -1,0 +1,820 @@
+---
+title: "Assignment: Predicting Employee Behaviors and Outcomes with Machine Learning"
+author: "YOUR NAME HERE"
+date: "2020-01-25"
+output:
+  pdf_document: default
+  word_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+## Instructions
+
+This assignment reviews the *Machine Learning* content. 
+You will use the *machine_learning.Rmd* file I reviewed as part of the lectures for this week to complete this assignment. 
+You will *copy and paste* relevant code from that file and update it to answer the questions in this assignment. 
+You will respond to questions in each section after executing relevant code to answer a question. 
+You will submit this assignment to its *Submissions* folder on *D2L*.
+You will submit *two* files:
+
+1. this completed *R Markdown* script, and 
+2. as a first preference, a *PDF* (if you already installed `TinyTeX` properly), as a second preference, a *Microsfot Word* (if your computer has *Microsoft Word*) document, or, as a third preference, an *HTML* (if you did *not* install `TinyTeX` properly and your computer does *not* have *Microsoft Word*) file to *D2L*.
+
+To start:
+
+First, create a folder on your computer to save all relevant files for this course. 
+If you did not do so already, you will want to create a folder named *mgt_592* that contains all of the materials for this course.
+
+Second, inside of *mgt_592*, you will create a folder to host assignments.
+You can name that folder *assignments*.
+
+Third, inside of *assignments*, you will create folders for each assignment.
+You can name the folder for this first assignment: *machine_learning*.
+
+Fourth, create three additional folders in *machine_learning* named *scripts*, *data*, and *plots*.
+Store this script in the *scripts* folder and the data for this assignment in the *data* folder.
+
+Fifth, go to the *File* menu in *RStudio*, select *New Project...*, choose *Existing Directory*, go to your *~/mgt_592/assignments/machine_learning* folder to select it as the top-level directory for this **R Project**.  
+
+## Global Settings
+
+The first code chunk sets the global settings for the remaining code chunks in the document.
+Do *not* change anything in this code chunk.
+
+```{r, setup, include = FALSE}
+### specify echo setting for all code chunks
+## call function
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Packages
+
+In this code chunk, we load the following packages:
+
+1. **here**,
+2. **tidyverse**,
+3. **ggthemes**,
+4. **tidymodels**, 
+5. **skimr**,
+6. **corrr**, and
+7. **vip**.
+
+Make sure you installed these packages when you reviewed the analytical lecture.
+
+We will use functions from these packages to examine the data. 
+Do *not* change anything in this code chunk.
+
+```{r, libraries, message = FALSE}
+### load libraries for use in current working session
+## here for project work flow
+library(here)
+
+## tidyverse for data manipulation and plotting
+# loads eight different libraries simultaneously
+library(tidyverse)
+
+## ggthemes for plot themes
+library(ggthemes)
+
+## tidymodels for modeling
+# loads ten different libraries simultaneously
+library(tidymodels)
+
+## skimr to summarize data
+library(skimr)
+
+## corrr for correlation matrices
+library(corrr)
+
+## vip for variable importance
+library(vip)
+```
+
+## Task 1: Import Data
+
+We will use the same data as in the analytical lecture: **staffing.tsv**.
+After you load the data, then you will execute other commands on the data.
+
+### Task 1.1
+
+Use the **read_tsv()** and **here()** functions to load the data file for this working session. 
+Save the data as the object **staff_raw**. 
+
+Make a copy of the data and name the copy: **staff_work**.
+Use the **glimpse()** function to view a preview of values for each variable in **staff_work**. 
+Remove **staff_raw** from your *global environment*.
+
+**Questions 1.1**: Answer these questions:
+(1) How many *variables* are there in the data table?
+(2) How many *observations* are there in the data table?
+(3) How many *character variables* are there in the data table?
+
+**Responses 1.1**: *(1) 14 variables; (2) 17,807 observations; (3) 4 character variables*.
+
+```{r, task1_1}
+
+```
+
+## Task 2: Clean Data
+
+For this task, you will clean the data.
+
+### Task 2.1
+
+Perform the following cleaning tasks to update **staff_work**: 
+
+1. mutate all character variables to factor variables, 
+2. *relabel* **degree** so that its factor levels use a capital first letter,
+3. change the **Masters** and **Doctorate** factor levels of **degree** to **Master** and **Doctor**, respectively,
+4. *relevel* the **degree** and **work_exp** factors in a logical order, and
+5. change **degree** and **work_exp** to be *ordered* factors.
+
+Use **glimpse()** to preview the updated **staff_work** data object.
+
+**Questions 2.1**: Answer these questions:
+(1) How many *nominal* factors are there in the data?
+(2) How many *ordered* factors are there in the data?
+(3) How many *numeric* variables are there in the data?
+
+**Responses 2.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task2_1}
+
+```
+
+## Task 3: Examine Data
+
+For this task, you will examine the data.
+
+### Task 3.1
+
+Summarize **staff_work** by: 
+
+1. selecting all variables *except* for **id**, **citizenship**, and **high_potential**,
+2. grouping by **promotion**, and
+3. applying **skim_without_charts()**.
+ 
+**Questions 3.1**: Answer these questions:
+(1) What is the *median* **sjt** *difference* between those *promoted* and *not promoted*?
+(2) How many *promoted* employees had **11+** years of *work experience*?
+
+**Responses 3.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task3_1}
+
+```
+
+### Task 3.2
+
+Make a *network correlation plot* from the *numeric* variables of **staff_work** *excluding* **id** and **citizenship**.
+Use **select()**, **correlate()**, and **network_plot()** appropriately to make the plot.
+The plot should consist of *8* numeric variables in total.
+Set the *minimum correlation* to **0.52**.
+ 
+**Questions 3.2**: Answer these questions:
+(1) Which *two* variables are not correlated at least **0.52** with any of the other variables?
+(2) Which *two* variables are correlated at least **0.52** with *job performance*?
+
+**Responses 3.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task3_2}
+
+```
+
+### Task 3.3
+
+Use **staff_work** and **ggplot()** to make a *boxplot* of *job performance* scores for different levels of *educational degree* and *work experience*.
+Place **degree** on the *x-axis* and **job_perf** on the *y-axis* and *fill* by **work_exp**.
+Color outliers in *red*.
+Scale the *y-axis* and *fill* appropriately.
+Use appropriate labels for the axes and legend.
+Use **theme_clean()**.
+
+**Questions 3.3**: Answer these questions:
+(1) Which combination of *educational degree* and *work experience* has the highest *median*?
+(2) Which level of *work experience* has the *least number of outliers*?
+(3) Which combination of *educational degree* and *work experience* has the *highest job performance* score?
+
+**Responses 3.3**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task3_3}
+
+```
+
+### Task 3.4
+
+Use **staff_work** and **ggplot()** to make *faceted scatterplots* of *job performance* against *work sample* scores for different levels of *educational degree*.
+Place **work_samp** on the *x-axis* and **job_perf** on the *y-axis* and *fill* by **degree**.
+Call the *point* and *smooth* geometries with appropriate settings.
+Use **facet_wrap** on **degree**.
+Appropriately combine **as_labeller()**, **setNames()**, **paste()**, and **levels()** to correctly label the facets.
+For the labels, paste the word **Degree** (note the capital first letter) with the *levels* of **degree** with a *colon* separator.
+Scale the *y-axis* and *color* appropriately.
+Use appropriate labels for the axes and legend.
+Use **theme_hc()** and remove the legend.
+
+**Question 3.4**: Do you see much of a *difference in the relationship* between *work sample* and *job performance* scores across the levels of *educational degree*?
+
+**Response 3.4**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task3_4}
+
+```
+
+## Task 4: Split Data
+
+For this task, you will split the data into a training and testing set.
+Then, you will create cross-validation folds for the training set.
+
+### Task 4.1
+
+Split **staff_work** into a *training* and *testing* set.
+Use random seed **1959**.
+Call **initial_split()** and create an *80%* split using **promotion** as the *stratification* variable.
+Save the split as **staff_split**.
+
+Extract the *training* set with **training()** and save it as **staff_train**.
+Extract the *testing* set with **testing()** and save it as **staff_test**.
+
+Calculate the proportions of **promotion** in **staff_train** and **staff_test**.
+
+**Questions 4.1**: Answer these questions:
+(1) How many observations are in the *training* set?
+(2) What proportion of *promoted* individuals are there in the *testing* set?
+(3) Are the **promotion** proportions essentially equivalent for the *training* and *testing* sets?
+
+**Responses 4.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task4_1}
+
+```
+
+### Task 4.2
+
+Split **staff_train** into *4* total folds.
+Use random seed **1959**.
+Call **vfold_cv()** and set the *number of folds* and *number of repeats* to **2** each.
+Use **promotion** as the *stratification* variable.
+Save the split as **staff_train_folds**.
+
+Calculate the **promotion** proportions in each *analysis* and *assessment* set from each of the folds in **staff_train_folds** using a single chained command.
+Start by calling **staff_train_folds** and using the correct combination of **mutate()**, **map()**, **analysis()**, and **assessment()** to create two list columns named **analysis** and **assessment**.
+Then, calculate the **promotion** proportions for each *analysis* and *assessment* set and saving the calculations in appropriately named columns.
+Then, use **unnest()** to extract the **promotion** proportions calculations and print wide.
+
+**Questions 4.2**: Answer these questions:
+(1) How many observations are in each of the *analysis* and *assessment* sets?
+(2) What proportion of *promoted* individuals are there in the *first analysis* set?
+(3) Are the **promotion** proportions essentially equivalent for the *analysis* and *assessment* sets?
+
+**Responses 4.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task4_2}
+
+```
+
+## Task 5: Data Preparation
+
+For this task, you will create a modeling recipe using the training data.
+
+### Task 5.1
+
+Create a recipe named **staff_rec**.
+Use **recipe()** on **staff_train** and specify **job_perf** and **promotion** as *outcome* variables and the remaining variables as *predictor* variables.
+Add a removal step to the recipe using **step_rm()** and remove **id**, **citizenship**, and **high_potential**.
+Add a normalization step to the recipe using **step_normalize()** and normalize *all predictors* except for the *nominal predictors*.
+Add a dummystep to the recipe using **step_dummy()** and create dummy variables for *all nominal predictors* except for nominal variable that has an *outcome* role (i.e., **promotion**).
+
+Use **prep()** and **bake()** on **staff_rec** to view the result of the recipe transformations.
+Print wide.
+
+**Questions 5.1**: Answer these questions:
+(1) How many *variables* are there in the *baked* recipe?
+(2) How many *factor* variables are there in the *baked* recipe?
+(3) Is the *first* employee in the *training* set *below* or *above* the mean on *cognitive flexibility* (**cog_flex**)?
+
+**Responses 5.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task5_1}
+
+```
+
+## Task 6: Fit Continuous Outcome Models
+
+For this task, you will fit models to predict *job performance*.
+
+### Task 6.1
+
+Create a *metric set* of *mean absolute error*, *root mean squared error*, and *r-squared* named **reg_met**.
+
+Create a *linear model* workflow named **lm_wflow** using **workflow()**.
+Use **add_model()** to add a model to the workflow with **linear_reg()** specification and **lm** engine.
+Use **add_recipe()** to add **staff_rec** and removing **promotion** with **step_rm()**.
+
+Create an object named **lm_fit_folds** to save fitted models to folds using **lm_wflow**.
+In **fit_resamples()**, set **resamples** to **staff_train_folds** and **metrics** to **reg_met**.
+
+Apply **collect_metrics()** to **lm_fit_folds**.
+
+Create an object named **lm_fit** to save a fitted model to the complete *training* data using **lm_wflow**.
+In **fit()**, specify **staff_train**.
+
+Use **pull_workflow_fit()** and **tidy()** on **lm_fit** to view the estimated regression coefficients.
+
+**Questions 6.1**: Answer these questions:
+(1) What is the *average mean absolute error* across the four folds?
+(2) What is the *regression coefficient* for the *cubic contrast* of *work experience* (**work_exp_3**)?
+(3) Interpret the *regression coefficient* for *emotional intelligence* (**emot_intel**).
+
+**Responses 6.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task6_1}
+
+```
+
+### Task 6.2
+
+Create an *elastic net* model specification named **glmnet_reg_spec**.
+Use the **linear_reg()** specification and set the **penalty** and **mixture** parameters to **tune()**.
+Use the **glmnet** engine.
+
+Create a *tuning grid* named **glmnnet_reg_grid**.
+Specify the *tuning grid* using **glmnet_reg_spec**, **parameters()**, and **regular_grid()** with **levels** set to **2**.
+
+Create an *elastic net* model workflow named **glmnet_reg_wflow** using **workflow()**.
+Use **add_model()** to add a model using **glmnet_reg_spec**.
+Use **add_recipe()** to add **staff_rec** and removing **promotion** with **step_rm()**.
+
+Create an object named **glmnet_reg_tune** to save fitted models to folds using **glmnet_reg_wflow** and the *tuning grid*.
+In **tune_grid()**, set the *folds* to **staff_train_folds**, **grid** to **glmnet_reg_grid**, and **metrics** to **reg_met**.
+
+Apply **autoplot()** to **glmnet_reg_tune**.
+Move the legend to the *top*.
+
+Apply **collect_metrics()** to **glmnet_reg_tune** and print *long* and *wide*.
+
+Apply **show_best()** to **glmnet_reg)tune** and set the **metric** to **mae**.
+
+Create a *final workflow* named **glmnet_reg_wflow_final** using **glmnet_reg_wflow** and **finalize_workflow()**.
+Inside of **finalize_workflow()**, create a **tibble()** and set **penalty** to **1e-10** and **mixture** to **0.05**.
+
+Create an object named **glmnet_reg_fit** to save a fitted model to the complete *training* data using **glmnet_reg_wflow_final**.
+In **fit()**, specify **staff_train**.
+
+Use **pull_workflow_fit()** and **tidy()** on **glmnet_reg_fit** to view the estimated regression coefficients.
+
+**Questions 6.2**: Answer these questions:
+(1) What is the *average root mean squared error* across the folds for the *first tuning set*?
+(2) What is the *value* of the *best average mean absolute error* across the folds?
+(3) What is the *regression coefficient* for the *quartic contrast* of *educational degree* (**degree_4**)?
+(4) Interpret the *regression coefficient* for *proactiveness* (**proactive**).
+
+**Responses 6.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task6_2}
+
+```
+
+### Task 6.3
+
+Create a *support vector machine* model specification named **svm_reg_spec**.
+Use the **svm_poly()** specification and set the **mode** to **regression**.
+Use the **kernlab** engine.
+
+Create a *support vector machine* model workflow named **svm_reg_wflow** using **workflow()**.
+Use **add_model()** to add a model using **svm_reg_spec**.
+Use **add_recipe()** to add **staff_rec** and removing **promotion** with **step_rm()**.
+
+Create an object named **svm_reg_folds** to save fitted models to folds using **svm_reg_wflow**.
+In **fit_resamples()**, set **resamples** to **staff_train_folds** and **metrics** to **reg_met**.
+
+Apply **collect_metrics()** to **svm_reg_folds**.
+
+Create an object named **svm_reg_fit** to save a fitted model to the complete *training* data using **svm_reg_wflow**.
+In **fit()**, specify **staff_train**.
+
+Use **pull_workflow_fit()** and **tidy()** on **svm_reg_fit** to view summary results.
+
+**Questions 6.3**: Answer these questions:
+(1) What is the *average r-squared* across the folds?
+(2) How many *support vectors* were produced using the complete *training* data?
+
+**Responses 6.3**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task6_3}
+
+```
+
+### Task 6.4
+
+Create a *random forest* model specification named **rf_reg_spec**.
+Use the **rand_forest()** specification and set the **mode** to **regression**.
+Use the **ranger** engine.
+
+Create a *random forest* model workflow named **rf_reg_wflow** using **workflow()**.
+Use **add_model()** to add a model using **rf_reg_spec**.
+Use **add_recipe()** to add **staff_rec** and removing **promotion** with **step_rm()**.
+
+Create an object named **rf_reg_folds** to save fitted models to folds using **rf_reg_wflow**.
+In **fit_resamples()**, set **resamples** to **staff_train_folds** and **metrics** to **reg_met**.
+
+Apply **collect_metrics()** to **rf_reg_folds**.
+
+Create an object named **rf_reg_fit** to save a fitted model to the complete *training* data using **rf_reg_wflow**.
+Use **update_model()** to update the model specification to the set **importance** parameter to **impurity**.
+In **fit()**, specify **staff_train**.
+
+Use **pull_workflow_fit()** and **vip()** on **rf_reg_fit** to view the importance values of predictors.
+
+**Questions 6.4**: Answer these questions:
+(1) What is the *average mean absolute error* across the folds?
+(2) Which *predictor* is *most important*?
+
+**Responses 6.4**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task6_4}
+
+```
+
+### Task 6.5
+
+Create a *neural network* model specification named **nn_reg_spec**.
+Use the **mlp()** specification and set the **mode** to **regression**, **hidden_units** to **30**, and **epochs** to **100**.
+Use the **nnet** engine.
+
+Create a *neural network* model workflow named **nn_reg_wflow** using **workflow()**.
+Use **add_model()** to add a model using **nn_reg_spec**.
+Use **add_recipe()** to add **staff_rec** and removing **promotion** with **step_rm()**.
+
+Create an object named **nn_reg_folds** to save fitted models to folds using **nn_reg_wflow**.
+In **fit_resamples()**, set **resamples** to **staff_train_folds** and **metrics** to **reg_met**.
+
+Apply **collect_metrics()** to **nn_reg_folds**.
+
+Create an object named **nn_reg_fit** to save a fitted model to the complete *training* data using **nn_reg_wflow**.
+In **fit()**, specify **staff_train**.
+
+Use **pull_workflow_fit()** on **nn_reg_fit** to view the importance values of predictors.
+
+**Questions 6.5**: Answer these questions:
+(1) What is the *average root mean squared error* across the folds?
+(2) How many *nodes* are in the *input* layer of the neural network?
+(3) How many *weights* are in the neural network?
+
+**Responses 6.5**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task6_5}
+
+```
+
+## Task 7: Evaluate Continuous Outcome Models
+
+For this task, you will evaluate the *job performance* models on the testing data.
+
+### Task 7.1
+
+Create an object named **lm_pred**.
+Apply **predict()** to **lm_fit** and **staff_test**.
+Rename the **.pred** column to **lm_pred**.
+
+Create an object named **glmnet_reg_pred**.
+Apply **predict()** to **glmnet_reg_fit** and **staff_test**.
+Rename the **.pred** column to **glmnet_reg_pred**.
+
+Create an object named **svm_reg_pred**.
+Apply **predict()** to **svm_reg_fit** and **staff_test**.
+Rename the **.pred** column to **svm_reg_pred**.
+
+Create an object named **rf_reg_pred**.
+Apply **predict()** to **rf_reg_fit** and **staff_test**.
+Rename the **.pred** column to **rf_reg_pred**.
+
+Create an object named **nn_reg_pred**.
+Apply **predict()** to **nn_reg_fit** and **staff_test**.
+Rename the **.pred** column to **nn_reg_pred**.
+
+Create an object named **staff_test_reg**.
+Use **select()** on **staff_test** to choose **job_perf**.
+Then, bind columns with **lm_pred**, **glmnet_reg_pred**, **svm_reg_pred**, **rf_reg_pred**, and **nn_reg_pred**.
+
+Print a table of metrics on the models.
+Use **map_dfr()** and set the *data* input by *removing* **job_perf** from **staff_test_reg**.
+Then, call **reg_met()** as the function input to **map_dfr()**.
+Inside of **reg_met()**, set the **data** to **staff_reg_test**, **truth** to **job_perf**, and **estimate** to **.x**.
+Set the **.id** to **model**.
+Use **pivot_wider()** to pivot the data table wide by setting **id_cols** to **model**, **names_from** to **.metric**, and **values_from** to **.estimate**.
+
+**Questions 7.1**: Answer these questions:
+(1) What is *mean absolute error* of the *support vector machine* model?
+(2) Which model has the *lowest root mean squared error*?
+
+**Responses 7.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task7_1}
+
+```
+
+### Task 7.2
+
+Create a long table named **staff_test_reg_long** from **staff_test_reg** by applying **pivot_longer()**.
+Set the **cols** to **lm_pred:nn_reg_pred**, **names_to** to **model**, and **values_to** to **pred**.
+Convert **model** to a *factor* variable.
+
+Create a plot named **reg_plot** using **ggplot()** and **staff_test_reg_long**.
+Set the *x-axis* to **pred** and *y-axis* to **job_perf**.
+Call **geom_point()** and set **alpha** to **0.5**.
+Call **geom_abline()** and create *red diagonal dashed* line with **size** set to **2**.
+Call **facet_wrap()** and facet by **model** with *two* rows and setting the labels to the full names of the models.
+Scale the *x-axis* and *y-axis* with *six* breaks.
+Label the axes to indicate the modeling of *job performance*.
+
+Display the plot.
+
+**Question 7.2**: Does predicting *job performance* in this data require advanced machine learning models? Explain.
+
+**Response 7.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task7_2}
+
+```
+
+## Task 8: Fit Categorical Outcome Models
+
+For this task, you will fit models to predict *promotion*.
+
+### Task 8.1
+
+Create a *metric set* of *area under the receiver-operator characteristic curve*, *Matthews correlation coefficient*, and *accuracy* named **class_met**.
+
+Create a *linear model* workflow named **glm_wflow** using **workflow()**.
+Use **add_model()** to add a model to the workflow with **logistic_reg()** specification and **glm** engine.
+Use **add_recipe()** to add **staff_rec** and removing **job_perf** with **step_rm()**.
+
+Create an object named **glm_fit_folds** to save fitted models to folds using **glm_wflow**.
+In **fit_resamples()**, set **resamples** to **staff_train_folds** and **metrics** to **class_met**.
+
+Apply **collect_metrics()** to **glm_fit_folds**.
+
+Create an object named **glm_fit** to save a fitted model to the complete *training* data using **glm_wflow**.
+In **fit()**, specify **staff_train**.
+
+Use **pull_workflow_fit()** and **tidy()** on **glm_fit** to view the estimated regression coefficients.
+
+**Questions 8.1**: Answer these questions:
+(1) What is the *average accuracy* across the four folds?
+(2) What is the *regression coefficient* for the *quadratic contrast* of *work experience* (**work_exp_2**)?
+(3) Interpret the *regression coefficient* for *emotional intelligence* (**emot_intel**).
+
+**Responses 8.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task8_1}
+
+```
+
+### Task 8.2
+
+Create an *elastic net* model specification named **glmnet_class_spec**.
+Use the **logistic_reg()** specification and set the **penalty** and **mixture** parameters to **tune()**.
+Use the **glmnet** engine.
+
+Create a *tuning grid* named **glmnnet_class_grid**.
+Specify the *tuning grid* using **glmnet_reg_spec**, **parameters()**, and **grid_max_entropy()** with **size** set to **5**.
+
+Create an *elastic net* model workflow named **glmnet_class_wflow** using **workflow()**.
+Use **add_model()** to add a model using **glmnet_class_spec**.
+Use **add_recipe()** to add **staff_rec** and removing **job_perf** with **step_rm()**.
+
+Create an object named **glmnet_class_tune** to save fitted models to folds using **glmnet_class_wflow** and the *tuning grid*.
+In **tune_grid()**, set the *folds* to **staff_train_folds**, **grid** to **glmnet_class_grid**, and **metrics** to **class_met**.
+
+Apply **autoplot()** to **glmnet_class_tune**.
+Move the legend to the *top*.
+
+Apply **collect_metrics()** to **glmnet_class_tune** and print *long* and *wide*.
+
+Apply **show_best()** to **glmnet_class_tune** and set the **metric** to **roc_auc**.
+
+Create a *final workflow* named **glmnet_class_wflow_final** using **glmnet_class_wflow** and **finalize_workflow()**.
+Inside of **finalize_workflow()**, create a **tibble()** and set **penalty** and **mixture** to values based on tuning.
+
+Create an object named **glmnet_class_fit** to save a fitted model to the complete *training* data using **glmnet_class_wflow_final**.
+In **fit()**, specify **staff_train**.
+
+Use **pull_workflow_fit()** and **tidy()** on **glmnet_class_fit** to view the estimated regression coefficients.
+
+**Questions 8.2**: Answer these questions:
+(1) What is the *average* **roc_auc** across the folds for the *third tuning set*?
+(2) What is the *value* of the *best average* **roc_auc** across the folds?
+(3) What is the *regression coefficient* for the *quadratic contrast* of *educational degree* (**degree_2**)?
+(4) Interpret the *regression coefficient* for *proactiveness* (**proactive**).
+
+**Responses 8.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task8_2}
+
+```
+
+### Task 8.3
+
+Create a *support vector machine* model specification named **svm_class_spec**.
+Use the **svm_poly()** specification and set the **mode** to **classification**.
+Use the **kernlab** engine.
+
+Create a *support vector machine* model workflow named **svm_class_wflow** using **workflow()**.
+Use **add_model()** to add a model using **svm_class_spec**.
+Use **add_recipe()** to add **staff_rec** and removing **job_perf** with **step_rm()**.
+
+Create an object named **svm_class_folds** to save fitted models to folds using **svm_class_wflow**.
+In **fit_resamples()**, set **resamples** to **staff_train_folds** and **metrics** to **class_met**.
+
+Apply **collect_metrics()** to **svm_class_folds**.
+
+Create an object named **svm_class_fit** to save a fitted model to the complete *training* data using **svm_class_wflow**.
+In **fit()**, specify **staff_train**.
+
+Use **pull_workflow_fit()** and **tidy()** on **svm_class_fit** to view summary results.
+
+**Questions 8.3**: Answer these questions:
+(1) What is the *average accuracy* across the folds?
+(2) How many *support vectors* were produced using the complete *training* data?
+
+**Responses 8.3**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task8_3}
+
+```
+
+### Task 8.4
+
+Create a *random forest* model specification named **rf_class_spec**.
+Use the **rand_forest()** specification and set the **mode** to **classification**.
+Use the **ranger** engine.
+
+Create a *random forest* model workflow named **rf_class_wflow** using **workflow()**.
+Use **add_model()** to add a model using **rf_class_spec**.
+Use **add_recipe()** to add **staff_rec** and removing **job_perf** with **step_rm()**.
+
+Create an object named **rf_class_folds** to save fitted models to folds using **rf_class_wflow**.
+In **fit_resamples()**, set **resamples** to **staff_train_folds** and **metrics** to **class_met**.
+
+Apply **collect_metrics()** to **rf_class_folds**.
+
+Create an object named **rf_class_fit** to save a fitted model to the complete *training* data using **rf_class_wflow**.
+Use **update_model()** to update the model specification to the set **importance** parameter to **impurity**.
+In **fit()**, specify **staff_train**.
+
+Use **pull_workflow_fit()** and **vip()** on **rf_class_fit** to view the importance values of predictors.
+
+**Questions 8.4**: Answer these questions:
+(1) What is the *average* **roc_auc** across the folds?
+(2) Which *predictor* is *most important*?
+
+**Responses 8.4**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task8_4}
+
+```
+
+### Task 8.5
+
+Create a *neural network* model specification named **nn_class_spec**.
+Use the **mlp()** specification and set the **mode** to **classification**, **hidden_units** to **30**, and **epochs** to **100**.
+Use the **nnet** engine.
+
+Create a *neural network* model workflow named **nn_class_wflow** using **workflow()**.
+Use **add_model()** to add a model using **nn_class_spec**.
+Use **add_recipe()** to add **staff_rec** and removing **job_perf** with **step_rm()**.
+
+Create an object named **nn_class_folds** to save fitted models to folds using **nn_class_wflow**.
+In **fit_resamples()**, set **resamples** to **staff_train_folds** and **metrics** to **class_met**.
+
+Apply **collect_metrics()** to **nn_class_folds**.
+
+Create an object named **nn_class_fit** to save a fitted model to the complete *training* data using **nn_class_wflow**.
+In **fit()**, specify **staff_train**.
+
+Use **pull_workflow_fit()** on **nn_class_fit** to view the importance values of predictors.
+
+**Questions 8.5**: Answer these questions:
+(1) What is the *average accuracy* across the folds?
+(2) How many *nodes* are in the *input* layer of the neural network?
+(3) How many *weights* are in the neural network?
+
+**Responses 8.5**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task8_5}
+
+```
+
+## Task 9: Evaluate Categorical Outcome Models
+
+For this task, you will evaluate the *promotion* models on the testing data.
+
+### Task 9.1
+
+Create an object named **glm_pred**.
+Use **select()** on **staff_test** to choose **promotion**.
+Apply **bind_cols()** and **predict()** to **glm_fit** and **staff_test** with **type** set to **prob**.
+
+Create an object named **glmnet_class_pred**.
+Use **select()** on **staff_test** to choose **promotion**.
+Apply **bind_cols()** and **predict()** to **glmnet_class_fit** and **staff_test** with **type** set to **prob**.
+
+Create an object named **svm_class_pred**.
+Use **select()** on **staff_test** to choose **promotion**.
+Apply **bind_cols()** and **predict()** to **svm_class_fit** and **staff_test** with **type** set to **prob**.
+
+Create an object named **rf_class_pred**.
+Use **select()** on **staff_test** to choose **promotion**.
+Apply **bind_cols()** and **predict()** to **rf_class_fit** and **staff_test** with **type** set to **prob**.
+
+Create an object named **nn_class_pred**.
+Use **select()** on **staff_test** to choose **promotion**.
+Apply **bind_cols()** and **predict()** to **nn_class_fit** and **staff_test** with **type** set to **prob**.
+
+Print a table of metrics on the models.
+Use **map_dfr()** and set the *data* input to a list using **list()** containing **glm_pred**, **glmnet_class_pred**, **svm_class_pred**, **rf_class_pred**, and **nn_class_pred**.
+Then, call **roc_auc()** as the function input to **map_dfr()**.
+Inside of **roc_auc()**, set the **data** to **.x**, **truth** to **promotion**, *estimate* to **.pred_Yes**, and **event_level** to **second**.
+Set the **.id** to **model**.
+
+**Questions 9.1**: Answer these questions:
+(1) What is **roc_auc** of the *random forest* model?
+(2) Which model has the *highest* **roc_auc**?
+
+**Responses 9.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task9_1}
+
+```
+
+### Task 9.2
+
+Create an object named **glm_roc** using **roc_curve()**.
+Set the *data* to **glm_pred**, **truth** to **promotion**, *prediction* to **.pred_Yes**, and **event_level** to **second**.
+
+Create an object named **glmnet_roc** using **roc_curve()**.
+Set the *data* to **glmnet_class_pred**, **truth** to **promotion**, *prediction* to **.pred_Yes**, and **event_level** to **second**.
+
+Create an object named **svm_roc** using **roc_curve()**.
+Set the *data* to **svm_class_pred**, **truth** to **promotion**, *prediction* to **.pred_Yes**, and **event_level** to **second**.
+
+Create an object named **rf_roc** using **roc_curve()**.
+Set the *data* to **rf_class_pred**, **truth** to **promotion**, *prediction* to **.pred_Yes**, and **event_level** to **second**.
+
+Create an object named **nn_roc** using **roc_curve()**.
+Set the *data* to **nn_class_pred**, **truth** to **promotion**, *prediction* to **.pred_Yes**, and **event_level** to **second**.
+
+Create a plot named **roc_plot** using **ggplot()**.
+Call **geom_abline()** and create *gray diagonal dashed* line.
+Add *five* **geom_path()** layers with *data* set to **glm_roc**, **glmnet_roc**, **svm_roc**, **rf_roc**, and **nn_roc**, respectively.
+Map **1 - specificity** to the *x-axis*, **sensitivity** to the *y-axis*, and **color** to **glm**, **glmnet**, **svm**, **rf**, and **nn**, respectively.
+Apply **scale_color_manual()** correctly.
+Label the axes and legend correclty.
+Use **theme_bw()** and move the legend to the *bottom*.
+
+Display the plot.
+
+**Question 9.2**: Does predicting *promotion* in this data require advanced machine learning models? Explain.
+
+**Response 9.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+```{r, task9_2}
+
+```
+
+## Task 10: Save Plots and Data
+
+For this task, you will save the plots and the working data.
+
+### Task 10.1
+
+Save **staff_train** and **staff_test** as the data files **staff_train.tsv** and **staff_test.tsv**, respectively, in the **data** folder of the project directory using **write_tsv()**.
+
+Save the two plot objects as **png** files in the **plots** folder of the project directory.
+Save **reg_plot** as **reg.png** and **roc_plot** as **roc.png**.
+Use a width of *9 inches* and height of *9 inches* for all plots.
+
+```{r, task10_1}
+
+```
+
+## Task 11: Conceptual Questions
+
+For your last task, you will respond to conceptual questions based on the conceptual lectures for this week.
+
+**Question 11.1**: What is the difference between *ridge*, *lasso*, and *elastic net* regression?
+
+**Response 11.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+**Question 11.2**: What is *repeated v-fold cross-validation*? Provide an example.
+
+**Response 11.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+
+**Question 11.3**: What is a *tuning parameter*? 
+
+**Response 11.3**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
