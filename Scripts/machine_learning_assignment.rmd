@@ -352,7 +352,34 @@ Calculate the proportions of **promotion** in **staff_train** and **staff_test**
 **Responses 4.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
 
 ```{r, task4_1}
+##setting seed
+set.seed(1959)
 
+##split data
+staff_split <- initial_split(
+  staff_work,
+  prob = 0.8,
+  strata = high_potential
+)
+##examining the initial split
+staff_split
+
+##extracting stratification
+staff_train <- training(staff_split)
+
+#testing
+staff_test <-testing(staff_split)
+
+##confirming stratification
+#training
+staff_train %>%
+  count(high_potential) %>%
+  mutate(prop = n / sum(n))
+
+#testing 
+staff_test %>%
+  count(high_potential) %>%
+  mutate(prop = n / sum(n))
 ```
 
 ### Task 4.2
@@ -376,7 +403,54 @@ Then, use **unnest()** to extract the **promotion** proportions calculations and
 **Responses 4.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
 
 ```{r, task4_2}
+##set seed
+set.seed(1959)
 
+##split training
+staff_train_folds <- vfold_cv(
+  staff_train,
+  v = 4,
+  repeats = 4,
+  strata = promotion
+)
+
+#examine folds
+staff_train_folds
+
+
+##extracting sets
+staff_train_folds %>%
+  mutate(
+    #analysis set
+    analysis = map(
+      splits,
+      analysis
+    ),
+    #assessment set
+    assessment = map(
+      splits,
+      assessment
+    ),
+    ##computing proportions for analysis 
+    ana_strat = map(
+      analysis,
+      ~ .x %>%
+        count(promotion) %>%
+        mutate(prop = n /sum(n))
+    ),
+    ass_strat =map(
+      analysis,
+      ~ .x %>%
+        count(promotion) %>%
+        mutate(prop = n /sum(n))
+    )
+  )%>%
+  ##unnest columns
+  unnest(
+    cols = c(ana_strat, ass_strat),
+    names_sep = "_"
+  )%>%
+  print(width = Inf)
 ```
 
 ## Task 5: Data Preparation
@@ -402,7 +476,30 @@ Print wide.
 **Responses 5.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
 
 ```{r, task5_1}
+staff_rec <- recipe(
+  job_perf + promotion ~
+    .,
+  data = staff_train
+) %>%
+  step_rm(
+    id, job_perf, promotion
+  )%>%
+  step_normalize(
+    all_predictors(),
+    -all_nominal()
+  )%>%
+  step_dummy(
+    all_nominal(),
+    -has_role("outcome")
+  )
 
+##prep and bake recipe
+staff_rec %>%
+  prep() %>%
+  bake(
+    new_data = NULL
+  ) %>%
+  print(width =Inf)
 ```
 
 ## Task 6: Fit Continuous Outcome Models
