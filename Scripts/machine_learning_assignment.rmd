@@ -1110,10 +1110,44 @@ Use **pull_workflow_fit()** and **tidy()** on **glm_fit** to view the estimated 
 (2) What is the *regression coefficient* for the *quadratic contrast* of *work experience* (**work_exp_2**)?
 (3) Interpret the *regression coefficient* for *emotional intelligence* (**emot_intel**).
 
-**Responses 8.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 8.1**: *(1) (2) (3)*.
 
 ```{r, task8_1}
+##specify model metric to optimize 
+class_met <-metric_set(roc_auc, mcc, accuracy)
 
+##logistic regression
+glm_wflow <- workflow() %>%
+  add_model(
+    logistic_reg() %>%
+      set_engine("glm")
+  ) %>%
+  add_recipe(
+    staff_rec %>%
+      step_rm(job_perf)
+  )
+
+
+##estimate model on folds
+glm_fit_folds <-
+  glm_wflow %>%
+  fit_resamples(
+    resamples = staff_train_folds,
+    metrics = class_met
+  )
+
+##show metrics
+collect_metrics(glm_fit_folds)
+
+##fit to complete training data
+glm_fit <-
+  glm_wflow %>%
+  fit(staff_train)
+
+##view coefficients
+glm_fit %>%
+  pull_workflow_fit() %>%
+  tidy()
 ```
 
 ### Task 8.2
@@ -1153,10 +1187,72 @@ Use **pull_workflow_fit()** and **tidy()** on **glmnet_class_fit** to view the e
 (3) What is the *regression coefficient* for the *quadratic contrast* of *educational degree* (**degree_2**)?
 (4) Interpret the *regression coefficient* for *proactiveness* (**proactive**).
 
-**Responses 8.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 8.2**: *(1) (2) (3) (4)*.
 
 ```{r, task8_2}
+##elastic net
+glmnet_class_spec <-
+  logistic_reg(
+    penalty = tune(),
+    mixture = tune()
+  ) %>%
+  set_engine("glmnet")
 
+##view a tuning grid
+glmnet_class_grid <- glmnet_class_spec %>%
+  parameters() %>%
+  grid_max_entropy(size = 5)
+
+##create initial work flow
+glmnet_class_wflow <- workflow() %>%
+  add_model(glmnet_class_spec) %>%
+  add_recipe(
+    staff_rec %>%
+      step_rm(job_perf)
+  )
+
+##estimate models
+glmnet_class_tune <-
+  glmnet_class_wflow %>%
+  tune_grid(
+    staff_train_folds,
+    grid = glmnet_class_grid,
+    metrics = class_met
+  )
+
+##plot metrics
+autoplot(glmnet_class_tune)
+
+##show metrics
+collect_metrics(glmnet_class_tune) %>%
+  print(n = Inf, width = Inf)
+
+
+##show best
+show_best(
+  glmnet_class_tune,
+  metric = "roc_auc"
+)
+
+##create final workflow
+glmnet_class_wflow_final <-
+  glmnet_class_wflow %>%
+  finalize_workflow(
+    tibble(
+      penality = 1.16e-2,
+      mixture = 0.992
+    )
+  )
+
+##fit to complete training data
+glmnet_class_fit <-
+  glmnet_class_wflow_final %>%
+  fit(staff_train)
+
+##view coefficients
+glmnet_class_fit %>%
+  pull_workflow_fit() %>%
+  tidy()
 ```
 
 ### Task 8.3
@@ -1183,10 +1279,43 @@ Use **pull_workflow_fit()** and **tidy()** on **svm_class_fit** to view summary 
 (1) What is the *average accuracy* across the folds?
 (2) How many *support vectors* were produced using the complete *training* data?
 
-**Responses 8.3**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 8.3**: *(1) (2)*.
 
 ```{r, task8_3}
+##support vector machine
+svm_class_spec <-
+  svm_poly(
+    mode = "classification"
+  ) %>%
+  set_engine("kernlab")
 
+##create initial workflow
+svm_class_wflow <- workflow() %>%
+  add_model(svm_class_spec) %>%
+  add_recipe(
+    staff_rec %>%
+      step_rm(job_perf)
+  )
+
+##estimate models
+svm_class_folds <-
+  svm_class_wflow %>%
+  fit_resamples(
+    resamples = staff_train_folds,
+    metrics = class_met
+  )
+
+##show metrics
+collect_metrics(svm_class_folds)
+
+##fit to complete training data
+svm_class_fit <-
+  svm_class_wflow %>%
+  fit(staff_train)
+
+##view coefficients
+svm_class_fit %>%
+  pull_workflow_fit()
 ```
 
 ### Task 8.4
@@ -1214,10 +1343,54 @@ Use **pull_workflow_fit()** and **vip()** on **rf_class_fit** to view the import
 (1) What is the *average* **roc_auc** across the folds?
 (2) Which *predictor* is *most important*?
 
-**Responses 8.4**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 8.4**: *(1) (2)*.
 
 ```{r, task8_4}
+##random forest
+rf_class_spec <-
+  rand_forest(
+    mode = "classification"
+  ) %>%
+  set_engine("ranger")
 
+##create initial work flow
+rf_class_wflow <- workflow() %>%
+  add_model(rf_class_spec) %>%
+  add_recipe(
+    staff_rec %>%
+      step_rm(job_perf)
+  )
+
+##estimate models
+rf_class_folds <-
+  rf_class_wflow %>%
+  fit_resamples(
+    resamples = staff_train_folds,
+    metrics = class_met
+  )
+
+
+##show metrics
+collect_metrics(rf_class_folds)
+
+##fit to complete training data
+rf_class_fit <-
+  rf_class_wflow %>%
+  update_model(
+    rand_forest(
+      mode = "classification"
+    ) %>%
+      set_engine(
+        "ranger",
+        importance = "impurity"
+      )
+  ) %>%
+  fit(staff_train)
+
+##view coefficients 
+rf_class_fit %>%
+  pull_workflow_fit() %>%
+  vip()
 ```
 
 ### Task 8.5
@@ -1245,10 +1418,48 @@ Use **pull_workflow_fit()** on **nn_class_fit** to view the importance values of
 (2) How many *nodes* are in the *input* layer of the neural network?
 (3) How many *weights* are in the neural network?
 
-**Responses 8.5**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 8.5**: *(1) (2) (3)*.
 
 ```{r, task8_5}
+##neural network
+#model specificaiton
+nn_class_spec <-
+  mlp(
+    mode = "classification",
+    hidden_units = 30,
+    epochs = 100
+  ) %>%
+  set_engine("nnet")
 
+##create initial workflow
+nn_class_wflow <- workflow() %>%
+  add_model(nn_class_spec) %>%
+  add_recipe(
+    staff_rec %>%
+      step_rm(job_perf)
+  )
+
+##estimates models
+nn_class_folds <-
+  nn_class_wflow %>%
+  fit_resamples(
+    resamples = staff_train_folds,
+    metrics = class_met
+  )
+
+
+##show metrics
+collect_metrics(nn_class_folds)
+
+
+##fit to complete training data
+nn_class_fit <-
+  nn_class_wflow %>%
+  fit(staff_train)
+
+##view coefficients
+nn_class_fit %>%
+  pull_workflow_fit()
 ```
 
 ## Task 9: Evaluate Categorical Outcome Models
@@ -1287,10 +1498,80 @@ Set the **.id** to **model**.
 (1) What is **roc_auc** of the *random forest* model?
 (2) Which model has the *highest* **roc_auc**?
 
-**Responses 9.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 9.1**: *(1) (2)*.
 
 ```{r, task9_1}
+##predictions
+glm_pred <- staff_test %>%
+  select(promotion) %>%
+  bind_cols(
+    predict(
+      glm_fit,
+      new_data = staff_test,
+      type = "prob"
+    )
+  )
 
+##elastic net
+glmnet_class_pred <- staff_test %>%
+  select(promotion) %>%
+  bind_cols(
+    predict(
+      glmnet_class_fit,
+      new_data = staff_test,
+      type = "prob"))
+
+
+##support vector machine
+svm_class_pred <- staff_test %>%
+  select(promotion) %>%
+  bind_cols(promotion) %>%
+  bind_cols(
+    predict(
+      svm_class_fit,
+      new_data = staff_test,
+      type = "prob"
+    )
+  )
+
+##random forest
+rf_class_pred <- staff_test %>%
+  select(promotion) %>%
+  bind_cols(
+    predict(
+      rf_class_fit,
+      new_data = staff_test,
+      type = "prob"
+    )
+  )
+
+##neural network
+nn_class_pred <- staff_test %>%
+  select(promotion) %>%
+  bind_cols(
+    predict(
+      nn_class_fit,
+      new_data = staff_test,
+      type = "prob"
+    )
+  )
+
+##compute area under ROC curve
+map_dfr(
+  list(
+    glm = glm_pred,
+    glmnet =glmnet_class_pred,
+    svm =svm_class_pred,
+    rf = rf_class_pred
+  ),
+  ~roc_auc(
+    data = .x,
+    truth = promotion,
+    .pred_Yes,
+    event_level = "second"
+  ),
+  .id = "model"
+)
 ```
 
 ### Task 9.2
@@ -1325,7 +1606,82 @@ Display the plot.
 **Response 9.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
 
 ```{r, task9_2}
+##compute ROC curve
+glm_roc <- roc_curve(
+  glm_pred,
+  truth = promotion,
+  .pred_Yes,
+  event_level = "second"
+)
 
+##elastic net
+glmnet_roc <- roc_curve(
+  glmnet_class_pred,
+  truth = promotion,
+  .pred_Yes,
+  event_level = "second"
+)
+
+##support vector machine
+svm_roc <- roc_curve(
+  svm_class_pred,
+  truth = promotion,
+  .pred_Yes,
+  event_level = "second"
+)
+
+##random forest
+rf_roc <- roc_curve(
+  rf_class_pred,
+  truth = promotion,
+  .pred_Yes,
+  event_level = "second"
+)
+
+##neural network
+nn_roc <- roc_curve(
+  nn_class_pred,
+  truth = promotion,
+  .pred_Yes,
+  event_level = "second"
+)
+
+##ROC curves
+roc_plot <- ggplot() +
+  geom_abline(linetype = 2, color = "gray") +
+  geom_path(
+    glm_roc,
+    mapping = aes(x = 1 - specificity, y = sensitivity, color = "glm") 
+    )+
+  geom_path( 
+    data = glmnet_roc,
+    mapping = aes(x = 1 - specificity, y = sensitivity, color = "glmnet")
+    )+
+  geom_path(
+    data = svm_roc,
+    mapping = aes(x = 1 - specificity, y = sensitivity, color = "svm"),
+    )+
+  geom_path(
+    data = rf_roc,
+    mapping = aes(x = 1 - specificity, y = sensitivity, color = "rf"),
+    )+
+  geom_path(
+    data = nn_roc,
+    mapping = aes(x = 1 - specificity, y = sensitivity, color = "nn"),
+    )+
+  scale_color_manual(
+    values = c(
+      "glm" = "#000000", "glmnet" = "#FDE725FF", 
+      "svm" = "#21908CFF", "rf" = "#99FF00",
+      "nn" = "#FF0066"
+      )
+    )+
+  labs(x = "False Positive Rate", y = "True Positive Rate", color = "Model") + 
+  theme_bw() +
+  theme(legend.position = "bottom")
+
+##display plot
+roc_plot
 ```
 
 ## Task 10: Save Plots and Data
@@ -1341,7 +1697,31 @@ Save **reg_plot** as **reg.png** and **roc_plot** as **roc.png**.
 Use a width of *9 inches* and height of *9 inches* for all plots.
 
 ```{r, task10_1}
+##save working data
+write_tsv(
+  staff_train,
+  file = here("data", "staff_train.tsv")
+  )
 
+##save working data
+write_tsv(
+  staff_test,
+  file = here ("data", "staff_test.tsv")
+  )
+
+##save plots to folder in project directory
+ggsave(
+  here("plots", "reg.png"),
+  plot =reg_plot,
+  units = "in", width = 9, height = 9
+  )
+
+##save a single plot to a file
+ggsave(
+  here("plots", "roc.png"),
+  plot = roc_plot,
+  units = "in", width = 9, height = 9
+  )
 ```
 
 ## Task 11: Conceptual Questions
