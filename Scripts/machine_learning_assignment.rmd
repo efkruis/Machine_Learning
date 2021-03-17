@@ -473,7 +473,7 @@ Print wide.
 (2) How many *factor* variables are there in the *baked* recipe?
 (3) Is the *first* employee in the *training* set *below* or *above* the mean on *cognitive flexibility* (**cog_flex**)?
 
-**Responses 5.1**: *(1) There at 15 variables; 2 outcomes variables and 13 predictor variables (2) there are no factor variables (3) above*.
+**Responses 5.1**: *(1) There at 15 variables; 2 outcomes variables and 13 predictor variables (2) there is one factor variable (3) above*.
 
 ```{r, task5_1}
 staff_rec <- recipe(
@@ -482,7 +482,7 @@ staff_rec <- recipe(
   data = staff_train
 ) %>%
   step_rm(
-    id, job_perf, promotion
+    id, citizenship, high_potential
   )%>%
   step_normalize(
     all_predictors(),
@@ -529,10 +529,67 @@ Use **pull_workflow_fit()** and **tidy()** on **lm_fit** to view the estimated r
 (2) What is the *regression coefficient* for the *cubic contrast* of *work experience* (**work_exp_3**)?
 (3) Interpret the *regression coefficient* for *emotional intelligence* (**emot_intel**).
 
-**Responses 6.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 6.1**: *(1) 4.15 (2) -1.55 (3) for every one unit change in emotional intelligence we expect a promotion to increase by 1.56 holding the other predictors constant. *.
 
 ```{r, task6_1}
+reg_met <- metric_set(mae, rmse, rsq)
 
+##linear model
+lm_wflow <- workflow() %>%
+  add_model(
+    linear_reg() %>%
+      set_engine("lm")
+  ) %>%
+  add_recipe(
+    staff_rec %>%
+      step_rm(promotion)
+  )
+
+##show metrics
+lm_fit_folds <-
+  lm_wflow %>%
+  fit_resamples(
+    resamples = staff_train_folds,
+    metrics = reg_met
+  )
+
+##show metrics
+collect_metrics(lm_fit_folds)
+
+
+
+
+reg_met <- metric_set(mae, rmse, rsq)
+#### linear model
+lm_wflow <- workflow() %>%
+  add_model(
+    linear_reg() %>%
+      set_engine("lm")
+    ) %>%
+  add_recipe(
+    staff_rec %>%
+      step_rm(promotion)
+    )
+
+ lm_fit_folds <-
+   lm_wflow %>% 
+   fit_resamples(
+     resamples = staff_train_folds, 
+     metrics = reg_met
+     )
+### show metrics
+collect_metrics(lm_fit_folds)
+
+
+## fit to complete training data
+lm_fit <- 
+  lm_wflow %>%
+  fit(staff_train)
+
+##view coefficients 
+lm_fit %>%
+  pull_workflow_fit() %>%
+  tidy()
 ```
 
 ### Task 6.2
@@ -572,10 +629,81 @@ Use **pull_workflow_fit()** and **tidy()** on **glmnet_reg_fit** to view the est
 (3) What is the *regression coefficient* for the *quartic contrast* of *educational degree* (**degree_4**)?
 (4) Interpret the *regression coefficient* for *proactiveness* (**proactive**).
 
-**Responses 6.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 6.2**: *(1) 4.15 (2) 4.15  (3) -0.0759  (4)for every one unit change in proactiveness we expect promotion to increase by 1.33 holding the other predictors constant *.
 
 ```{r, task6_2}
+##elastic net
+glmnet_reg_spec <- 
+  linear_reg(
+    penalty = tune(),
+    mixture = tune()
+  ) %>%
+  set_engine("glmnet")
 
+##view a tuning grid
+glmnet_reg_grid <- glmnet_reg_spec %>%
+  parameters() %>%
+  grid_regular(levels =2)
+
+
+##create initial workflow
+glmnet_reg_wflow <- workflow() %>%
+  add_model(glmnet_reg_spec) %>%
+  add_recipe(
+    staff_rec %>%
+      step_rm(promotion)
+  )
+
+##esitmate models
+glmnet_reg_tune <-
+  glmnet_reg_wflow %>%
+  tune_grid(
+    staff_train_folds,
+    grid = glmnet_reg_grid,
+    metrics = reg_met
+  )
+
+
+##plot metrics
+autoplot(glmnet_reg_tune) +
+  theme(legend.position = "top")
+
+
+##show metrics
+collect_metrics(glmnet_reg_tune) %>%
+  print(n = Inf, width = Inf)
+
+
+##show best
+show_best(
+  glmnet_reg_tune,
+  metric = "mae"
+)
+
+
+
+##create final workflow
+glmnet_reg_wflow_final <-
+  glmnet_reg_wflow %>%
+  finalize_workflow(
+    tibble(
+      penalty = 1e-10,
+      mixture = 0.05
+    )
+  )
+
+
+##fit to complete training data
+glmnet_reg_fit <-
+  glmnet_reg_wflow_final %>%
+  fit(staff_train)
+
+
+
+##view coefficients 
+glmnet_reg_fit %>%
+  pull_workflow_fit() %>%
+  tidy()
 ```
 
 ### Task 6.3
@@ -602,9 +730,43 @@ Use **pull_workflow_fit()** and **tidy()** on **svm_reg_fit** to view summary re
 (1) What is the *average r-squared* across the folds?
 (2) How many *support vectors* were produced using the complete *training* data?
 
-**Responses 6.3**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 6.3**: *(1)0.569 (2) 11713*.
 
 ```{r, task6_3}
+##support vector machine
+svm_reg_spec <-
+  svm_poly(
+    mode = "regression"
+  )%>%
+  set_engine("kernlab")
+
+##create intial workflow
+svm_reg_wflow <- workflow() %>%
+  add_model(svm_reg_spec) %>%
+  add_recipe(
+    staff_rec %>%
+      step_rm(promotion)
+  )
+
+##estimate models
+svm_reg_folds <-
+  svm_reg_wflow %>%
+  fit_resamples(
+    resamples = staff_train_folds,
+    metrics = reg_met
+  )
+
+##show metrics
+collect_metrics(svm_reg_folds)
+
+##fit to complete_training data
+svm_reg_fit <-
+  svm_reg_wflow %>%
+  fit(staff_train)
+
+##view coefficients 
+svm_reg_fit %>%
+  pull_workflow_fit() 
 
 ```
 
@@ -633,10 +795,53 @@ Use **pull_workflow_fit()** and **vip()** on **rf_reg_fit** to view the importan
 (1) What is the *average mean absolute error* across the folds?
 (2) Which *predictor* is *most important*?
 
-**Responses 6.4**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 6.4**: *(1) 4.16  (2) work_samp*.
 
 ```{r, task6_4}
+##random forest
+rf_reg_spec <-
+  rand_forest(
+    mode = "regression"
+  ) %>%
+  set_engine("ranger")
 
+##create initial workflow
+rf_reg_wflow <-workflow() %>%
+  add_model(rf_reg_spec) %>%
+  add_recipe(
+    staff_rec %>%
+      step_rm(promotion)
+  )
+
+##estimate models
+rf_reg_folds  <-
+  rf_reg_wflow%>%
+  fit_resamples(
+    resamples = staff_train_folds,
+    metrics = reg_met
+  )
+
+##show metrics
+collect_metrics(rf_reg_folds)
+
+##fit to complete training data
+rf_reg_fit <-
+  rf_reg_wflow %>%
+  update_model(
+    rand_forest(
+      mode = "regression"
+    ) %>%
+      set_engine(
+        "ranger",
+        importance = "impurity"
+      )
+  ) %>%
+  fit(staff_train)
+
+##view coefficients
+rf_reg_fit %>%
+  pull_workflow_fit() %>%
+  vip()
 ```
 
 ### Task 6.5
@@ -664,9 +869,47 @@ Use **pull_workflow_fit()** on **nn_reg_fit** to view the importance values of p
 (2) How many *nodes* are in the *input* layer of the neural network?
 (3) How many *weights* are in the neural network?
 
-**Responses 6.5**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 6.5**: *(1) 5.30 (2) 17 (3) 571 weights*.
 
 ```{r, task6_5}
+##neural network, model specifications
+nn_reg_spec <- mlp(
+  mode = "regression",
+  hidden_units = 30,
+  epochs = 100
+) %>%
+  set_engine("nnet")
+
+##create initial workflow
+nn_reg_wflow <- workflow() %>%
+  add_model(nn_reg_spec) %>%
+  add_recipe(
+    staff_rec %>%
+      step_rm(promotion)
+  )
+
+
+##estimate models
+nn_reg_folds <-
+  nn_reg_wflow %>%
+  fit_resamples(
+    resamples = staff_train_folds,
+    metrics = reg_met
+  )
+
+##show metrics
+collect_metrics(nn_reg_folds)
+
+
+##fit to complete training data
+nn_reg_fit <-
+  nn_reg_wflow %>%
+  fit(staff_train)
+
+
+##view coefficients
+nn_reg_fit %>%
+  pull_workflow_fit()
 
 ```
 
@@ -711,10 +954,72 @@ Use **pivot_wider()** to pivot the data table wide by setting **id_cols** to **m
 (1) What is *mean absolute error* of the *support vector machine* model?
 (2) Which model has the *lowest root mean squared error*?
 
-**Responses 7.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Responses 7.1**: *(1) (2)*.
 
 ```{r, task7_1}
+##predictions
+lm_pred <- predict(
+  lm_fit,
+  new_data = staff_test
+) %>%
+  rename(lm_pred = .pred)
 
+##elastic net
+glmnet_reg_pred <- predict(
+  glmnet_reg_fit,
+  new_data = staff_test
+) %>%
+  rename(glmnet_reg_pred = .pred)
+
+##support vector machine
+svm_reg_pred <- predict(
+  svm_reg_fit,
+  new_data =staff_test
+) %>%
+  rename(svm_reg_pred = .pred)
+
+##random forest
+rf_reg_pred <- predict(
+  rf_reg_fit,
+  new_data = staff_test 
+) %>%
+  rename(rf_reg_pred = .pred)
+
+##neural network
+nn_reg_pred <- predict(
+  nn_reg_fit,
+  new_data = staff_test,
+) %>%
+  rename(nn_reg_pred = .pred)
+
+
+##combine tibbles
+staff_test_reg <- staff_test %>%
+  select(job_perf) %>%
+  bind_cols(
+    lm_pred,
+    glmnet_reg_pred,
+    svm_reg_pred,
+    rf_reg_pred,
+    nn_reg_pred
+  )
+
+##compute metrics
+map_dfr(
+  staff_test_reg %>%
+    select( -job_perf),
+  ~ reg_met(
+    data = staff_test_reg,
+    truth = job_perf,
+    estimate = .x
+  ),
+  .id = "model"
+) %>%
+  pivot_wider(
+    id_cols = model,
+    names_from = .metric,
+    values_from = .estimate
+  )
 ```
 
 ### Task 7.2
@@ -738,7 +1043,44 @@ Display the plot.
 **Response 7.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
 
 ```{r, task7_2}
+##long table for plots
+staff_test_reg_long <- staff_test_reg %>%
+  pivot_longer(
+    cols = lm_pred:nn_reg_pred,
+    names_to = "model",
+    values_to = "pred"
+  ) %>%
+  mutate(model = as_factor(model))
 
+##observed versus predicted values 
+reg_plot <- ggplot(
+  staff_test_reg_long,
+  aes(
+    x = pred,
+    y = job_perf
+  )
+) +
+  geom_point(alpha = 0.5) +
+  geom_abline(lty = 2, color = "red", size = 2) +
+  facet_wrap(
+    vars(model),
+    nrow = 2,
+    labeller = as_labeller(
+      setNames(
+        c( 
+        "Linear Model", "Elastic Net", "Support Vector
+         Machine", "Random Forest", "Neural Network"
+         ),
+      levels(staff_test_reg_long$model)
+    )
+  )
+) +
+  scale_y_continuous(n.breaks = 6) +
+  scale_x_continuous(n.breaks = 6) +
+  labs(x = "Predicted Job Performance", y = "Observed Job Performance")
+
+##display plot
+reg_plot
 ```
 
 ## Task 8: Fit Categorical Outcome Models
