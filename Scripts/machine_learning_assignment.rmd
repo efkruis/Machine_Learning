@@ -263,7 +263,7 @@ Use **theme_clean()**.
 (2) Which level of *work experience* has the *least number of outliers*?
 (3) Which combination of *educational degree* and *work experience* has the *highest job performance* score?
 
-**Responses 3.3**: *(1) Doctorate (2) 11+ years (3) Doctorate and 11+ years has the highest job performance score *.
+**Responses 3.3**: *(1) Doctorate and 11+ work experience (2) 11+ years (3) Doctorate and 11+ years has the highest job performance score *.
 
 ```{r, task3_3}
 ##examining categorical features
@@ -296,7 +296,7 @@ Use **theme_hc()** and remove the legend.
 
 **Question 3.4**: Do you see much of a *difference in the relationship* between *work sample* and *job performance* scores across the levels of *educational degree*?
 
-**Response 3.4**: *No there does not appear much difference*.
+**Response 3.4**: *No there does not appear much difference in terms of general direction however, there is more data points for the educational degrees of none, associates and bachelors suggesting that jop preformace can be predicted but not perfectly for  these education degrees *.
 
 ```{r, task3_4}
 ##examine relations by categories
@@ -349,7 +349,7 @@ Calculate the proportions of **promotion** in **staff_train** and **staff_test**
 (2) What proportion of *promoted* individuals are there in the *testing* set?
 (3) Are the **promotion** proportions essentially equivalent for the *training* and *testing* sets?
 
-**Responses 4.1**: *(1) 13356 (2) 78.3% (3) yes*.
+**Responses 4.1**: *(1) 13356 (2) 10.4% (3) yes*.
 
 ```{r, task4_1}
 ##setting seed
@@ -359,7 +359,7 @@ set.seed(1959)
 staff_split <- initial_split(
   staff_work,
   prob = 0.8,
-  strata = high_potential
+  strata = promotion
 )
 ##examining the initial split
 staff_split
@@ -373,12 +373,12 @@ staff_test <-testing(staff_split)
 ##confirming stratification
 #training
 staff_train %>%
-  count(high_potential) %>%
+  count(promotion) %>%
   mutate(prop = n / sum(n))
 
 #testing 
 staff_test %>%
-  count(high_potential) %>%
+  count(promotion) %>%
   mutate(prop = n / sum(n))
 ```
 
@@ -400,7 +400,7 @@ Then, use **unnest()** to extract the **promotion** proportions calculations and
 (2) What proportion of *promoted* individuals are there in the *first analysis* set?
 (3) Are the **promotion** proportions essentially equivalent for the *analysis* and *assessment* sets?
 
-**Responses 4.2**: *(1) Analysis sets have 10016 observations and the Assessment sets have 3340 observations (2) 10.7% (3) yes*.
+**Responses 4.2**: *(1) Analysis sets have 10017 observations and the Assessment sets have 3339 observations (2) 10.4% (3) yes*.
 
 ```{r, task4_2}
 ##set seed
@@ -473,7 +473,7 @@ Print wide.
 (2) How many *factor* variables are there in the *baked* recipe?
 (3) Is the *first* employee in the *training* set *below* or *above* the mean on *cognitive flexibility* (**cog_flex**)?
 
-**Responses 5.1**: *(1) There at 15 variables; 2 outcomes variables and 13 predictor variables (2) there is one factor variable (3) above*.
+**Responses 5.1**: *(1) There at 15 variables; 2 outcomes variables and 13 predictor variables (2) there is one factor variable which is the promotion variable (3) above*.
 
 ```{r, task5_1}
 staff_rec <- recipe(
@@ -529,7 +529,7 @@ Use **pull_workflow_fit()** and **tidy()** on **lm_fit** to view the estimated r
 (2) What is the *regression coefficient* for the *cubic contrast* of *work experience* (**work_exp_3**)?
 (3) Interpret the *regression coefficient* for *emotional intelligence* (**emot_intel**).
 
-**Responses 6.1**: *(1) 4.15 (2) -1.55 (3) for every one unit change in emotional intelligence we expect a promotion to increase by 1.56 holding the other predictors constant. *.
+**Responses 6.1**: *(1) 4.13 (2) -1.57 (3) for every one unit change in emotional intelligence we expect a promotion to decrease by 1.57 holding the other predictors constant. *.
 
 ```{r, task6_1}
 reg_met <- metric_set(mae, rmse, rsq)
@@ -629,7 +629,7 @@ Use **pull_workflow_fit()** and **tidy()** on **glmnet_reg_fit** to view the est
 (3) What is the *regression coefficient* for the *quartic contrast* of *educational degree* (**degree_4**)?
 (4) Interpret the *regression coefficient* for *proactiveness* (**proactive**).
 
-**Responses 6.2**: *(1) 4.15 (2) 4.15  (3) -0.0759  (4)for every one unit change in proactiveness we expect promotion to increase by 1.33 holding the other predictors constant *.
+**Responses 6.2**: *(1) 4.13 (2) 4.13  (3) -0.235  (4)for every one unit change in proactiveness we expect promotion to increase by 1.29 holding the other predictors constant *.
 
 ```{r, task6_2}
 ##elastic net
@@ -730,7 +730,7 @@ Use **pull_workflow_fit()** and **tidy()** on **svm_reg_fit** to view summary re
 (1) What is the *average r-squared* across the folds?
 (2) How many *support vectors* were produced using the complete *training* data?
 
-**Responses 6.3**: *(1)0.569 (2) 11713*.
+**Responses 6.3**: *(1) 0.567 (2) 11713*.
 
 ```{r, task6_3}
 ##support vector machine
@@ -954,7 +954,7 @@ Use **pivot_wider()** to pivot the data table wide by setting **id_cols** to **m
 (1) What is *mean absolute error* of the *support vector machine* model?
 (2) Which model has the *lowest root mean squared error*?
 
-**Responses 7.1**: *(1) (2)*.
+**Responses 7.1**: *(1) 4.14 (2) lm_pred, glmnet_reg_pred, and svg_reg_pred all have a rmse of 5.23 whcih is the lowest*.
 
 ```{r, task7_1}
 ##predictions
@@ -1040,7 +1040,7 @@ Display the plot.
 
 **Question 7.2**: Does predicting *job performance* in this data require advanced machine learning models? Explain.
 
-**Response 7.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Response 7.2**: *No they all do an equally job of predicting job performance so only a linear model is necessary. *.
 
 ```{r, task7_2}
 ##long table for plots
@@ -1110,7 +1110,7 @@ Use **pull_workflow_fit()** and **tidy()** on **glm_fit** to view the estimated 
 (2) What is the *regression coefficient* for the *quadratic contrast* of *work experience* (**work_exp_2**)?
 (3) Interpret the *regression coefficient* for *emotional intelligence* (**emot_intel**).
 
-**Responses 8.1**: *(1) (2) (3)*.
+**Responses 8.1**: *(1) 0.896 (2) -0.00421 (3) For every one unit change in emotinal intelligence we expect promotion to  increase  by 0.161 holding the other predictors constant.*.
 
 ```{r, task8_1}
 ##specify model metric to optimize 
@@ -1187,7 +1187,7 @@ Use **pull_workflow_fit()** and **tidy()** on **glmnet_class_fit** to view the e
 (3) What is the *regression coefficient* for the *quadratic contrast* of *educational degree* (**degree_2**)?
 (4) Interpret the *regression coefficient* for *proactiveness* (**proactive**).
 
-**Responses 8.2**: *(1) (2) (3) (4)*.
+**Responses 8.2**: *(1) 0.622 (2) 0.622 (3) 0  (4) For every one unit change in proactiveness we expect  promotion to increase by 0.0989 holding the other predictors constant *.
 
 ```{r, task8_2}
 ##elastic net
@@ -1239,8 +1239,8 @@ glmnet_class_wflow_final <-
   glmnet_class_wflow %>%
   finalize_workflow(
     tibble(
-      penality = 1.16e-2,
-      mixture = 0.992
+      penalty = 5.90e-2,
+      mixture = 0.166
     )
   )
 
@@ -1279,7 +1279,7 @@ Use **pull_workflow_fit()** and **tidy()** on **svm_class_fit** to view summary 
 (1) What is the *average accuracy* across the folds?
 (2) How many *support vectors* were produced using the complete *training* data?
 
-**Responses 8.3**: *(1) (2)*.
+**Responses 8.3**: *(1) 0.896 (2) 2935*.
 
 ```{r, task8_3}
 ##support vector machine
@@ -1343,7 +1343,7 @@ Use **pull_workflow_fit()** and **vip()** on **rf_class_fit** to view the import
 (1) What is the *average* **roc_auc** across the folds?
 (2) Which *predictor* is *most important*?
 
-**Responses 8.4**: *(1) (2)*.
+**Responses 8.4**: *(1) 0.595 (2)consc*.
 
 ```{r, task8_4}
 ##random forest
@@ -1418,7 +1418,7 @@ Use **pull_workflow_fit()** on **nn_class_fit** to view the importance values of
 (2) How many *nodes* are in the *input* layer of the neural network?
 (3) How many *weights* are in the neural network?
 
-**Responses 8.5**: *(1) (2) (3)*.
+**Responses 8.5**: *(1)0.878 (2) 17 (3) 571*.
 
 ```{r, task8_5}
 ##neural network
@@ -1498,7 +1498,7 @@ Set the **.id** to **model**.
 (1) What is **roc_auc** of the *random forest* model?
 (2) Which model has the *highest* **roc_auc**?
 
-**Responses 9.1**: *(1) (2)*.
+**Responses 9.1**: *(1) 0.624 (2) glmnet had the highest roc_auc*.
 
 ```{r, task9_1}
 ##predictions
@@ -1525,7 +1525,6 @@ glmnet_class_pred <- staff_test %>%
 ##support vector machine
 svm_class_pred <- staff_test %>%
   select(promotion) %>%
-  bind_cols(promotion) %>%
   bind_cols(
     predict(
       svm_class_fit,
@@ -1603,7 +1602,7 @@ Display the plot.
 
 **Question 9.2**: Does predicting *promotion* in this data require advanced machine learning models? Explain.
 
-**Response 9.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Response 9.2**: *Yes because the SVM model is in the false positive rate and does not do a good job at predicting promotion. *.
 
 ```{r, task9_2}
 ##compute ROC curve
@@ -1730,12 +1729,12 @@ For your last task, you will respond to conceptual questions based on the concep
 
 **Question 11.1**: What is the difference between *ridge*, *lasso*, and *elastic net* regression?
 
-**Response 11.1**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Response 11.1**: *Ridge is penalizing predictors if they are too far away from zero which foreces then to be small in a continuous way. Lasso also adds a penalty for non-zero coeffiences but penalizes their absolute values. The elastic net is the combination of the ridge and lasso errors*.
 
 **Question 11.2**: What is *repeated v-fold cross-validation*? Provide an example.
 
-**Response 11.2**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Response 11.2**: *the repated v- fold cross validation splits data into equal v groups. FOr example, if you have v= 2 and the total of splits is equal to 10 then you have 6 groups of 2 that are generated seperately. *.
 
 **Question 11.3**: What is a *tuning parameter*? 
 
-**Response 11.3**: *WRITE YOUR ANSWER BETWEEN THESE ASTERISKS*.
+**Response 11.3**: *A tuning parameter is also known as the ridge regression penalty. It controls for the strength of the penalty temr in both the ridge regression and lasso regression*.
